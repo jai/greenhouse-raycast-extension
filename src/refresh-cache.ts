@@ -1,7 +1,7 @@
 import { Toast, getPreferenceValues, showToast } from "@raycast/api";
 import { HarvestClient, HarvestError } from "./api/harvest";
 import { setCachedJobs, setCachedPipeline } from "./cache/cacheUtils";
-import { fetchJobPipelineData, fetchOpenJobs } from "./jobs/harvestData";
+import { fetchActiveJobPosts, fetchJobPipelineData } from "./jobs/harvestData";
 
 const RATE_LIMIT_RETRIES = 3;
 const RATE_LIMIT_BASE_DELAY_MS = 1000;
@@ -47,8 +47,8 @@ export default async function RefreshCacheCommand() {
 
   try {
     const jobs = await withRateLimitRetry(
-      () => fetchOpenJobs(client),
-      "open jobs",
+      () => fetchActiveJobPosts(client),
+      "active job posts",
     );
     setCachedJobs(jobs);
 
@@ -58,13 +58,13 @@ export default async function RefreshCacheCommand() {
     for (const job of jobs) {
       try {
         const pipelineData = await withRateLimitRetry(
-          () => fetchJobPipelineData(client, job.id),
-          `pipeline for job ${job.id}`,
+          () => fetchJobPipelineData(client, job.job_id),
+          `pipeline for job ${job.job_id}`,
         );
-        setCachedPipeline(job.id, pipelineData);
+        setCachedPipeline(job.job_id, pipelineData);
         successCount += 1;
       } catch (err) {
-        console.error(`Failed to refresh pipeline for job ${job.id}:`, err);
+        console.error(`Failed to refresh pipeline for job ${job.job_id}:`, err);
         errorCount += 1;
       }
     }

@@ -139,3 +139,38 @@ export const buildCandidateApplicationUrl = (
   ).replace(/\/$/, "");
   return `${normalizedBaseUrl}/people/${candidateId}/applications/${applicationId}/redesign`;
 };
+
+const STAGE_COLOR_RULES: Array<{
+  keywords: string[];
+  color: StageTintName;
+}> = [
+  { keywords: ["reject", "declin", "withdraw", "archive"], color: "red" },
+  { keywords: ["hire", "offer"], color: "green" },
+  {
+    keywords: ["interview", "onsite", "on-site", "take home", "assessment"],
+    color: "purple",
+  },
+  { keywords: ["phone", "screen"], color: "orange" },
+  { keywords: ["application", "review"], color: "blue" },
+];
+
+export type StageTintName =
+  | "red"
+  | "green"
+  | "purple"
+  | "orange"
+  | "blue"
+  | "secondary";
+
+export const getStageTintName = (stageName?: string | null): StageTintName => {
+  const normalized = stageName?.toLowerCase().trim();
+  if (!normalized) {
+    return "secondary";
+  }
+  for (const rule of STAGE_COLOR_RULES) {
+    if (rule.keywords.some((keyword) => normalized.includes(keyword))) {
+      return rule.color;
+    }
+  }
+  return "secondary";
+};

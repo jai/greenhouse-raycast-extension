@@ -1,6 +1,8 @@
 import {
   Action,
   ActionPanel,
+  Color,
+  Icon,
   List,
   Toast,
   getPreferenceValues,
@@ -20,6 +22,8 @@ import {
   buildCandidateApplicationUrl,
   buildPipelineSections,
   getDaysSince,
+  getStageTintName,
+  type StageTintName,
 } from "./pipelineUtils";
 import { fetchJobPipelineData } from "./harvestData";
 
@@ -73,6 +77,14 @@ export default function JobPipeline({ job }: JobPipelineProps) {
   const applications = data?.applications ?? [];
   const candidates = data?.candidates ?? {};
   const showLoading = isLoading && data === undefined;
+  const stageTintColors: Record<StageTintName, Color> = {
+    red: Color.Red,
+    green: Color.Green,
+    purple: Color.Purple,
+    orange: Color.Orange,
+    blue: Color.Blue,
+    secondary: Color.SecondaryText,
+  };
 
   const sections = useMemo(
     () => buildPipelineSections(applications, stages),
@@ -112,6 +124,10 @@ export default function JobPipeline({ job }: JobPipelineProps) {
               );
               const activityLabel =
                 daysSince === null ? undefined : `${daysSince}d`;
+              const stageColor =
+                stageTintColors[
+                  getStageTintName(application.current_stage?.name)
+                ];
               const candidateUrl = buildCandidateApplicationUrl(
                 preferences.recruitingBaseUrl,
                 application.candidate_id,
@@ -121,6 +137,7 @@ export default function JobPipeline({ job }: JobPipelineProps) {
               return (
                 <List.Item
                   key={application.id}
+                  icon={{ source: Icon.PersonCircle, tintColor: stageColor }}
                   title={candidateName}
                   accessories={
                     activityLabel ? [{ text: activityLabel }] : undefined
@@ -129,6 +146,7 @@ export default function JobPipeline({ job }: JobPipelineProps) {
                     <ActionPanel>
                       <Action.OpenInBrowser
                         title="Open Candidate"
+                        icon={Icon.ArrowRight}
                         url={candidateUrl}
                       />
                     </ActionPanel>

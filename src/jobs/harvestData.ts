@@ -24,28 +24,44 @@ export const fetchOpenJobs = async (client: HarvestClient) => {
 export const fetchActiveJobPosts = async (
   client: HarvestClient,
 ): Promise<JobListItem[]> => {
-  const posts = await client.listAll<HarvestJobPost>("job_posts", {
-    active: "true",
-  });
+  const [jobs, posts] = await Promise.all([
+    client.listAll<HarvestJob>("jobs", { status: "open" }),
+    client.listAll<HarvestJobPost>("job_posts", { active: "true" }),
+  ]);
 
-  const jobMap = new Map<number, JobListItem>();
-
+  // Build a map of job_id -> post flags
+  const postFlags = new Map<
+    number,
+    { hasInternal: boolean; hasExternal: boolean }
+  >();
   for (const post of posts) {
-    const existing = jobMap.get(post.job_id);
+    const existing = postFlags.get(post.job_id);
     if (existing) {
       existing.hasInternal = existing.hasInternal || post.internal;
       existing.hasExternal = existing.hasExternal || post.external;
     } else {
-      jobMap.set(post.job_id, {
-        job_id: post.job_id,
-        title: post.title,
+      postFlags.set(post.job_id, {
         hasInternal: post.internal,
         hasExternal: post.external,
       });
     }
   }
 
-  return Array.from(jobMap.values());
+  // Build job list from jobs, enriched with post flags
+  const jobList: JobListItem[] = jobs
+    .filter((job) => job.name)
+    .map((job) => {
+      const flags = postFlags.get(job.id);
+      return {
+        job_id: job.id,
+        title: job.name,
+        hasInternal: flags?.hasInternal ?? false,
+        hasExternal: flags?.hasExternal ?? false,
+        hasNoPosts: !flags,
+      };
+    });
+
+  return jobList.sort((a, b) => a.title.localeCompare(b.title));
 };
 
 export const fetchJobPipelineData = async (

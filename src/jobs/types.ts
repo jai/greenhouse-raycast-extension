@@ -21,6 +21,7 @@ export interface JobListItem {
   title: string;
   hasInternal: boolean;
   hasExternal: boolean;
+  hasNoPosts: boolean;
 }
 
 export interface HarvestJobStage {

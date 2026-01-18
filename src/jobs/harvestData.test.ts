@@ -1,10 +1,15 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { HarvestClient } from "../api/harvest";
-import { fetchJobPipelineData, fetchOpenJobs } from "./harvestData";
+import {
+  fetchActiveJobPosts,
+  fetchJobPipelineData,
+  fetchOpenJobs,
+} from "./harvestData";
 import type {
   HarvestApplication,
   HarvestCandidate,
   HarvestJob,
+  HarvestJobPost,
   HarvestJobStage,
 } from "./types";
 
@@ -153,5 +158,178 @@ describe("fetchJobPipelineData", () => {
       202: candidates[1],
     });
     expect(fetchMock).toHaveBeenCalledTimes(3);
+  });
+});
+
+describe("fetchActiveJobPosts", () => {
+  it("returns jobs sorted alphabetically by title", async () => {
+    const client = new HarvestClient({ apiKey: "test-key" });
+    const jobs: HarvestJob[] = [
+      { id: 100, name: "Zebra Keeper", status: "open", confidential: false },
+      { id: 200, name: "Apple Picker", status: "open", confidential: false },
+      { id: 300, name: "Manager", status: "open", confidential: false },
+    ];
+    const posts: HarvestJobPost[] = [
+      {
+        id: 1,
+        title: "Zebra Keeper",
+        job_id: 100,
+        active: true,
+        live: true,
+        internal: false,
+        external: true,
+      },
+      {
+        id: 2,
+        title: "Apple Picker",
+        job_id: 200,
+        active: true,
+        live: true,
+        internal: true,
+        external: false,
+      },
+      {
+        id: 3,
+        title: "Manager",
+        job_id: 300,
+        active: true,
+        live: true,
+        internal: false,
+        external: true,
+      },
+    ];
+
+    const fetchMock = vi.fn(async (input: RequestInfo | URL) => {
+      const url = resolveUrl(input);
+      if (url.includes("/jobs")) return toJsonResponse(jobs);
+      if (url.includes("/job_posts")) return toJsonResponse(posts);
+      throw new Error(`Unexpected fetch URL: ${url}`);
+    });
+    vi.stubGlobal("fetch", fetchMock as unknown as typeof fetch);
+
+    const results = await fetchActiveJobPosts(client);
+
+    expect(results.map((j) => j.title)).toEqual([
+      "Apple Picker",
+      "Manager",
+      "Zebra Keeper",
+    ]);
+  });
+
+  it("merges internal and external posts for the same job", async () => {
+    const client = new HarvestClient({ apiKey: "test-key" });
+    const jobs: HarvestJob[] = [
+      { id: 100, name: "Engineer", status: "open", confidential: false },
+    ];
+    const posts: HarvestJobPost[] = [
+      {
+        id: 1,
+        title: "Engineer",
+        job_id: 100,
+        active: true,
+        live: true,
+        internal: false,
+        external: true,
+      },
+      {
+        id: 2,
+        title: "Engineer",
+        job_id: 100,
+        active: true,
+        live: false,
+        internal: true,
+        external: false,
+      },
+    ];
+
+    const fetchMock = vi.fn(async (input: RequestInfo | URL) => {
+      const url = resolveUrl(input);
+      if (url.includes("/jobs")) return toJsonResponse(jobs);
+      if (url.includes("/job_posts")) return toJsonResponse(posts);
+      throw new Error(`Unexpected fetch URL: ${url}`);
+    });
+    vi.stubGlobal("fetch", fetchMock as unknown as typeof fetch);
+
+    const results = await fetchActiveJobPosts(client);
+
+    expect(results).toHaveLength(1);
+    expect(results[0]).toEqual({
+      job_id: 100,
+      title: "Engineer",
+      hasInternal: true,
+      hasExternal: true,
+      hasNoPosts: false,
+    });
+  });
+
+  it("includes jobs without posts and marks them as hasNoPosts", async () => {
+    const client = new HarvestClient({ apiKey: "test-key" });
+    const jobs: HarvestJob[] = [
+      { id: 100, name: "Posted Job", status: "open", confidential: false },
+      { id: 200, name: "Unposted Job", status: "open", confidential: false },
+    ];
+    const posts: HarvestJobPost[] = [
+      {
+        id: 1,
+        title: "Posted Job",
+        job_id: 100,
+        active: true,
+        live: true,
+        internal: false,
+        external: true,
+      },
+    ];
+
+    const fetchMock = vi.fn(async (input: RequestInfo | URL) => {
+      const url = resolveUrl(input);
+      if (url.includes("/jobs")) return toJsonResponse(jobs);
+      if (url.includes("/job_posts")) return toJsonResponse(posts);
+      throw new Error(`Unexpected fetch URL: ${url}`);
+    });
+    vi.stubGlobal("fetch", fetchMock as unknown as typeof fetch);
+
+    const results = await fetchActiveJobPosts(client);
+
+    expect(results).toHaveLength(2);
+    const postedJob = results.find((j) => j.title === "Posted Job");
+    const unpostedJob = results.find((j) => j.title === "Unposted Job");
+
+    expect(postedJob).toEqual({
+      job_id: 100,
+      title: "Posted Job",
+      hasInternal: false,
+      hasExternal: true,
+      hasNoPosts: false,
+    });
+    expect(unpostedJob).toEqual({
+      job_id: 200,
+      title: "Unposted Job",
+      hasInternal: false,
+      hasExternal: false,
+      hasNoPosts: true,
+    });
+  });
+
+  it("skips jobs without a name", async () => {
+    const client = new HarvestClient({ apiKey: "test-key" });
+    const jobs = [
+      { id: 100, name: "Valid Job", status: "open", confidential: false },
+      { id: 200, name: "", status: "open", confidential: false },
+      { id: 300, name: null, status: "open", confidential: false },
+    ];
+    const posts: HarvestJobPost[] = [];
+
+    const fetchMock = vi.fn(async (input: RequestInfo | URL) => {
+      const url = resolveUrl(input);
+      if (url.includes("/jobs")) return toJsonResponse(jobs);
+      if (url.includes("/job_posts")) return toJsonResponse(posts);
+      throw new Error(`Unexpected fetch URL: ${url}`);
+    });
+    vi.stubGlobal("fetch", fetchMock as unknown as typeof fetch);
+
+    const results = await fetchActiveJobPosts(client);
+
+    expect(results).toHaveLength(1);
+    expect(results[0].title).toBe("Valid Job");
   });
 });

@@ -1,10 +1,11 @@
 {
   "name": "greenhouse-raycast-extension",
   "title": "Greenhouse",
-  "version": "0.0.1",
+  "version": "0.0.3",
   "description": "Raycast extension for Greenhouse jobs and applicant pipeline stages",
-  "icon": "assets/command-icon.png",
+  "icon": "command-icon.png",
   "author": "jai",
+  "categories": ["Productivity"],
   "license": "MIT",
   "private": true,
   "preferences": [
@@ -39,7 +40,7 @@
       "title": "Greenhouse",
       "description": "Browse Greenhouse jobs and pipelines",
       "mode": "view",
-      "icon": "assets/command-icon.png"
+      "icon": "command-icon.png"
     },
     {
       "name": "refresh-cache",
@@ -52,6 +53,7 @@
   "scripts": {
     "build": "ray build -e dist",
     "lint": "eslint src/** && prettier --check \"src/**\"",
+    "publish": "npx @raycast/api@latest publish",
     "test": "vitest run"
   },
   "dependencies": {

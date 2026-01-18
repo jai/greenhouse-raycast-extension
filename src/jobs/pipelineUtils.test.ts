@@ -4,6 +4,7 @@ import {
   buildCandidateApplicationUrl,
   buildPipelineSections,
   getDaysSince,
+  getStageTintName,
 } from "./pipelineUtils";
 
 describe("getDaysSince", () => {
@@ -122,5 +123,20 @@ describe("buildCandidateApplicationUrl", () => {
     ).toBe(
       "https://s101.recruiting.eu.greenhouse.io/people/123/applications/456/redesign",
     );
+  });
+});
+
+describe("getStageTintName", () => {
+  it("maps known stage keywords to colors", () => {
+    expect(getStageTintName("Application Review")).toBe("blue");
+    expect(getStageTintName("Phone Screen")).toBe("orange");
+    expect(getStageTintName("Onsite Interview")).toBe("purple");
+    expect(getStageTintName("Offer")).toBe("green");
+    expect(getStageTintName("Rejected")).toBe("red");
+  });
+
+  it("falls back to secondary text for unknown stages", () => {
+    expect(getStageTintName("Custom Stage")).toBe("secondary");
+    expect(getStageTintName(undefined)).toBe("secondary");
   });
 });

@@ -2,6 +2,7 @@ import {
   Action,
   ActionPanel,
   Color,
+  Icon,
   List,
   Toast,
   getPreferenceValues,
@@ -16,7 +17,24 @@ import {
 } from "../api/harvestErrors";
 import { getCachedJobs, setCachedJobs } from "../cache/cacheUtils";
 import JobPipeline from "./JobPipeline";
-import { fetchOpenJobs } from "./harvestData";
+import { fetchActiveJobPosts } from "./harvestData";
+import type { JobListItem } from "./types";
+
+function buildJobAccessories(job: JobListItem) {
+  const accessories: { tag: { value: string; color: Color } }[] = [];
+  if (job.hasExternal) {
+    accessories.push({ tag: { value: "open", color: Color.Green } });
+  }
+  if (job.hasInternal) {
+    accessories.push({ tag: { value: "internal", color: Color.Yellow } });
+  }
+  if (job.hasNoPosts) {
+    accessories.push({
+      tag: { value: "not posted", color: Color.SecondaryText },
+    });
+  }
+  return accessories;
+}
 
 export default function JobsList() {
   const preferences = getPreferenceValues<{
@@ -35,7 +53,7 @@ export default function JobsList() {
   const cachedJobs = useMemo(() => getCachedJobs(), []);
 
   const { data, isLoading } = useCachedPromise(
-    () => fetchOpenJobs(client),
+    () => fetchActiveJobPosts(client),
     [],
     {
       initialData: cachedJobs ?? undefined,
@@ -56,31 +74,25 @@ export default function JobsList() {
       },
     },
   );
-  const jobs = data ?? [];
+  const jobs = (data ?? []).filter((job) => job.title);
   const showLoading = isLoading && data === undefined;
 
   return (
     <List isLoading={showLoading} searchBarPlaceholder="Search jobs">
       {!showLoading && jobs.length === 0 ? (
         <List.EmptyView
-          title={error ? error.title : "No open jobs"}
+          title={error ? error.title : "No active job posts"}
           description={
-            error ? error.description : "No open roles found in Harvest."
+            error ? error.description : "No active job posts found in Harvest."
           }
         />
       ) : (
         jobs.map((job) => (
           <List.Item
-            key={job.id}
-            title={job.name}
-            accessories={[
-              {
-                tag: {
-                  value: job.confidential ? "internal" : job.status,
-                  color: job.confidential ? Color.Yellow : Color.Green,
-                },
-              },
-            ]}
+            key={job.job_id}
+            icon={Icon.Folder}
+            title={job.title}
+            accessories={buildJobAccessories(job)}
             actions={
               <ActionPanel>
                 <Action.Push

@@ -4,7 +4,7 @@ import type { JobListItem } from "../jobs/types";
 
 const cache = new Cache();
 
-export const CACHE_KEY_JOBS_OPEN = "jobs:open";
+export const CACHE_KEY_JOBS_OPEN = "jobs:v4";
 export const CACHE_KEY_PIPELINE_PREFIX = "pipeline:";
 
 export const getCachedJobs = (): JobListItem[] | null => {
