@@ -65,6 +65,7 @@ export default function JobPipeline({ job }: JobPipelineProps) {
           client.listAll<HarvestJobStage>(`jobs/${job.id}/stages`),
           client.listAll<HarvestApplication>("applications", {
             job_id: job.id,
+            status: "active",
           }),
         ]);
 

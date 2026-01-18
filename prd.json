@@ -125,7 +125,7 @@
         "Pipeline view excludes rejected/hired applications",
         "npm run build passes"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "id": "US-011",

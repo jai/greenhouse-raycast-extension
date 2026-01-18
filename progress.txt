@@ -53,3 +53,10 @@
 - **Learnings for future iterations:**
   - Harvest base URL preferences may come through as empty/whitespace; trim and default to the standard base URL in the client.
 ---
+
+## 2026-01-18 15:41 - US-010
+- Filtered job pipeline applications by passing status=active to the Harvest applications list call.
+- Files changed: src/jobs/JobPipeline.tsx, prd.json, progress.txt.
+- **Learnings for future iterations:**
+  - Harvest applications list supports a status filter (active, converted, hired, rejected); use status=active for pipeline views.
+---
