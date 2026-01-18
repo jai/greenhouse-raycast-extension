@@ -33,6 +33,7 @@ const resolveUrl = (input: RequestInfo | URL) => {
 
 afterEach(() => {
   vi.restoreAllMocks();
+  vi.unstubAllGlobals();
 });
 
 describe("fetchOpenJobs", () => {
@@ -58,7 +59,7 @@ describe("fetchOpenJobs", () => {
       throw new Error(`Unexpected fetch URL: ${url}`);
     });
 
-    globalThis.fetch = fetchMock as unknown as typeof fetch;
+    vi.stubGlobal("fetch", fetchMock as unknown as typeof fetch);
 
     const results = await fetchOpenJobs(client);
 
@@ -141,7 +142,7 @@ describe("fetchJobPipelineData", () => {
       throw new Error(`Unexpected fetch URL: ${url}`);
     });
 
-    globalThis.fetch = fetchMock as unknown as typeof fetch;
+    vi.stubGlobal("fetch", fetchMock as unknown as typeof fetch);
 
     const result = await fetchJobPipelineData(client, jobId);
 
