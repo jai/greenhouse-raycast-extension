@@ -90,7 +90,7 @@
         "Tests for application->stage grouping",
         "npm test passes"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "id": "US-008",

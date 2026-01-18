@@ -35,7 +35,8 @@
   ],
   "scripts": {
     "build": "ray build -e dist",
-    "lint": "eslint src/** && prettier --check \"src/**\""
+    "lint": "eslint src/** && prettier --check \"src/**\"",
+    "test": "vitest run"
   },
   "dependencies": {
     "@raycast/api": "^1.104.1"
@@ -46,6 +47,7 @@
     "@types/react": "^19.2.8",
     "eslint": "^9.39.2",
     "prettier": "^3.8.0",
-    "typescript": "^5.9.3"
+    "typescript": "^5.9.3",
+    "vitest": "^4.0.17"
   }
 }

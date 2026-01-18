@@ -8,6 +8,8 @@
 
 - Added a typed Harvest client wrapper in src/api/harvest.ts for auth, pagination, and request handling.
 
+- Pipeline list grouping logic lives in src/jobs/pipelineUtils.ts for reuse and testing.
+
 - Completed US-004 Build Greenhouse root command.
   - Files changed: src/index.tsx, src/jobs/JobsList.tsx, src/api/harvest.ts, package.json, raycast.json, assets/command-icon.png, raycast-env.d.ts, prd.json.
   - Decisions: root command lists Jobs and pushes to a placeholder JobsList; moved manifest fields into package.json; icon now lives under assets/; lint runs eslint+prettier locally to avoid Raycast API network checks.
@@ -24,4 +26,13 @@
 - **Learnings for future iterations:**
   - Job stages load from `GET /v1/jobs/{id}/stages` and applications filter by `job_id`.
   - Candidate names require a candidates lookup; batch `candidate_ids` (max 50) instead of per-app requests.
+---
+
+## 2026-01-18 13:30 - US-007
+- Added Vitest coverage for Harvest pagination parsing, pipeline grouping, and days-since calculations.
+- Files changed: src/api/harvest.test.ts, src/jobs/pipelineUtils.ts, src/jobs/pipelineUtils.test.ts, src/jobs/JobPipeline.tsx, package.json, prd.json, progress.txt.
+- **Learnings for future iterations:**
+  - Keep pipeline grouping/date math in src/jobs/pipelineUtils.ts to keep JobPipeline lean and testable.
+  - Vitest is wired via `npm test` with explicit imports (no globals).
+  - Raycast build runs cleanly without overriding HOME; changing HOME can trigger mise trust prompts.
 ---

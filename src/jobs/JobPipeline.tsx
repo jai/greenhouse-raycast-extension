@@ -7,58 +7,19 @@ import type {
   HarvestJob,
   HarvestJobStage,
 } from "./types";
+import {
+  buildCandidateMap,
+  buildCandidateName,
+  buildPipelineSections,
+  chunkIds,
+  getDaysSince,
+} from "./pipelineUtils";
 
 interface JobPipelineProps {
   job: HarvestJob;
 }
 
 const CANDIDATE_BATCH_SIZE = 50;
-const MILLISECONDS_PER_DAY = 1000 * 60 * 60 * 24;
-
-const buildCandidateName = (candidate?: HarvestCandidate) => {
-  if (!candidate) {
-    return null;
-  }
-  const firstName = candidate.first_name?.trim();
-  const lastName = candidate.last_name?.trim();
-  const fullName = [firstName, lastName].filter(Boolean).join(" ");
-  if (fullName) {
-    return fullName;
-  }
-  return candidate.name?.trim() || null;
-};
-
-const getDaysSince = (dateValue?: string | null) => {
-  if (!dateValue) {
-    return null;
-  }
-  const timestamp = new Date(dateValue).getTime();
-  if (Number.isNaN(timestamp)) {
-    return null;
-  }
-  const diffDays = Math.floor(
-    Math.max(0, Date.now() - timestamp) / MILLISECONDS_PER_DAY,
-  );
-  return diffDays;
-};
-
-const chunkIds = (ids: number[], size: number) => {
-  const chunks: number[][] = [];
-  for (let i = 0; i < ids.length; i += size) {
-    chunks.push(ids.slice(i, i + size));
-  }
-  return chunks;
-};
-
-const buildCandidateMap = (candidates: HarvestCandidate[]) => {
-  return candidates.reduce<Record<number, HarvestCandidate>>(
-    (map, candidate) => {
-      map[candidate.id] = candidate;
-      return map;
-    },
-    {},
-  );
-};
 
 export default function JobPipeline({ job }: JobPipelineProps) {
   const preferences = getPreferenceValues<{
@@ -143,72 +104,10 @@ export default function JobPipeline({ job }: JobPipelineProps) {
     };
   }, [client, job.id]);
 
-  const sections = useMemo(() => {
-    const grouped = new Map<string, HarvestApplication[]>();
-    for (const application of applications) {
-      const stageId = application.current_stage?.id ?? "none";
-      const key = String(stageId);
-      const currentGroup = grouped.get(key) ?? [];
-      currentGroup.push(application);
-      grouped.set(key, currentGroup);
-    }
-
-    const stageEntries = new Map<
-      number,
-      { id: number; name: string; priority: number }
-    >();
-
-    for (const stage of stages) {
-      stageEntries.set(stage.id, {
-        id: stage.id,
-        name: stage.name,
-        priority: stage.priority,
-      });
-    }
-
-    for (const application of applications) {
-      const currentStage = application.current_stage;
-      if (!currentStage) {
-        continue;
-      }
-      if (!stageEntries.has(currentStage.id)) {
-        stageEntries.set(currentStage.id, {
-          id: currentStage.id,
-          name: currentStage.name,
-          priority: Number.MAX_SAFE_INTEGER,
-        });
-      }
-    }
-
-    const orderedStages = [...stageEntries.values()].sort((left, right) => {
-      if (left.priority !== right.priority) {
-        return left.priority - right.priority;
-      }
-      return left.name.localeCompare(right.name);
-    });
-
-    const output = orderedStages
-      .map((stage) => {
-        const items = grouped.get(String(stage.id)) ?? [];
-        return {
-          id: String(stage.id),
-          title: stage.name,
-          applications: items,
-        };
-      })
-      .filter((section) => section.applications.length > 0);
-
-    const noStageApplications = grouped.get("none");
-    if (noStageApplications?.length) {
-      output.push({
-        id: "none",
-        title: "No Stage",
-        applications: noStageApplications,
-      });
-    }
-
-    return output;
-  }, [applications, stages]);
+  const sections = useMemo(
+    () => buildPipelineSections(applications, stages),
+    [applications, stages],
+  );
 
   const hasApplications = applications.length > 0;
 
