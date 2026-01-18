@@ -1,3 +1,7 @@
+# Internal automation
+.last-branch
+archive/
+
 # --- GitHub.gitignore: Node ---
 # Logs
 logs
