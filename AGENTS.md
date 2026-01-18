@@ -61,3 +61,4 @@ When unsure about API usage, crawl the official documentation first.
 - Place extension icons under `assets/` and reference them as `assets/...` in manifests.
 - In sandboxed runs, set `HOME` to a repo-local directory when using `ray build` to avoid writes to `~/.config`.
 - Harvest API jobs can be filtered by `status` and paginated via `Link` headers; `HarvestClient.listAll` is the expected way to traverse pages.
+- Use `getHarvestErrorDisplay` from `src/api/harvestErrors.ts` for consistent Harvest auth/rate-limit messaging and toast handling.

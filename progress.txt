@@ -2,6 +2,7 @@
 # Each iteration appends what was completed
 
 ## Codebase Patterns
+- Use `getHarvestErrorDisplay` in `src/api/harvestErrors.ts` for consistent Harvest auth/rate-limit toasts and empty-state messaging.
 - Harvest candidates endpoint supports `candidate_ids` with max 50; batch requests when resolving application candidate names.
 
 - Added Raycast preferences for Harvest API key and optional base URL.
@@ -35,4 +36,12 @@
   - Keep pipeline grouping/date math in src/jobs/pipelineUtils.ts to keep JobPipeline lean and testable.
   - Vitest is wired via `npm test` with explicit imports (no globals).
   - Raycast build runs cleanly without overriding HOME; changing HOME can trigger mise trust prompts.
+---
+
+## 2026-01-18 13:35 - US-008
+- Added Harvest error display helper plus auth/rate-limit toasts and clearer empty states in JobsList and JobPipeline.
+- Files changed: src/api/harvestErrors.ts, src/jobs/JobsList.tsx, src/jobs/JobPipeline.tsx, AGENTS.md, prd.json, progress.txt.
+- **Learnings for future iterations:**
+  - Use `getHarvestErrorDisplay` for consistent Harvest error messaging and toast handling.
+  - Empty states should distinguish between no data and API failures.
 ---

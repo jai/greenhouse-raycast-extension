@@ -1,6 +1,17 @@
-import { Action, ActionPanel, List, getPreferenceValues } from "@raycast/api";
+import {
+  Action,
+  ActionPanel,
+  List,
+  Toast,
+  getPreferenceValues,
+  showToast,
+} from "@raycast/api";
 import { useEffect, useMemo, useState } from "react";
-import { HarvestClient, HarvestError } from "../api/harvest";
+import { HarvestClient } from "../api/harvest";
+import {
+  type HarvestErrorDisplay,
+  getHarvestErrorDisplay,
+} from "../api/harvestErrors";
 import JobPipeline from "./JobPipeline";
 import type { HarvestJob } from "./types";
 
@@ -19,7 +30,7 @@ export default function JobsList() {
   );
   const [jobs, setJobs] = useState<HarvestJob[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<HarvestErrorDisplay | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -36,11 +47,15 @@ export default function JobsList() {
         }
       } catch (err) {
         if (!cancelled) {
-          const message =
-            err instanceof HarvestError
-              ? `Harvest API error (${err.status})`
-              : "Unable to load jobs.";
-          setError(message);
+          const errorDisplay = getHarvestErrorDisplay(err, "jobs");
+          setError(errorDisplay);
+          if (errorDisplay.toastTitle) {
+            await showToast({
+              style: Toast.Style.Failure,
+              title: errorDisplay.toastTitle,
+              message: errorDisplay.toastMessage,
+            });
+          }
         }
       } finally {
         if (!cancelled) {
@@ -60,8 +75,10 @@ export default function JobsList() {
     <List isLoading={isLoading} searchBarPlaceholder="Search jobs">
       {jobs.length === 0 ? (
         <List.EmptyView
-          title={error ? "Unable to load jobs" : "No open jobs"}
-          description={error ?? "No open roles found."}
+          title={error ? error.title : "No open jobs"}
+          description={
+            error ? error.description : "No open roles found in Harvest."
+          }
         />
       ) : (
         jobs.map((job) => (

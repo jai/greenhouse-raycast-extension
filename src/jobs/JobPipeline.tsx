@@ -1,6 +1,17 @@
-import { Action, ActionPanel, List, getPreferenceValues } from "@raycast/api";
+import {
+  Action,
+  ActionPanel,
+  List,
+  Toast,
+  getPreferenceValues,
+  showToast,
+} from "@raycast/api";
 import { useEffect, useMemo, useState } from "react";
-import { HarvestClient, HarvestError } from "../api/harvest";
+import { HarvestClient } from "../api/harvest";
+import {
+  type HarvestErrorDisplay,
+  getHarvestErrorDisplay,
+} from "../api/harvestErrors";
 import type {
   HarvestApplication,
   HarvestCandidate,
@@ -40,7 +51,7 @@ export default function JobPipeline({ job }: JobPipelineProps) {
     Record<number, HarvestCandidate>
   >({});
   const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<HarvestErrorDisplay | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -84,11 +95,15 @@ export default function JobPipeline({ job }: JobPipelineProps) {
         }
       } catch (err) {
         if (!cancelled) {
-          const message =
-            err instanceof HarvestError
-              ? `Harvest API error (${err.status})`
-              : "Unable to load pipeline.";
-          setError(message);
+          const errorDisplay = getHarvestErrorDisplay(err, "pipeline");
+          setError(errorDisplay);
+          if (errorDisplay.toastTitle) {
+            await showToast({
+              style: Toast.Style.Failure,
+              title: errorDisplay.toastTitle,
+              message: errorDisplay.toastMessage,
+            });
+          }
         }
       } finally {
         if (!cancelled) {
@@ -118,9 +133,11 @@ export default function JobPipeline({ job }: JobPipelineProps) {
     >
       {!hasApplications ? (
         <List.EmptyView
-          title={error ? "Unable to load pipeline" : "No applications yet"}
+          title={error ? error.title : "No applications yet"}
           description={
-            error ?? "There are no applications for this job right now."
+            error
+              ? error.description
+              : "There are no applications for this job yet."
           }
         />
       ) : (
