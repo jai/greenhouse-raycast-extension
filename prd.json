@@ -77,7 +77,7 @@
         "npm run build succeeds",
         "Verify in Raycast: pipeline shows stages and applicants"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "id": "US-007",
