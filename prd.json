@@ -49,7 +49,7 @@
         "npm run build succeeds",
         "Verify in Raycast: extension loads, shows Jobs item"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "id": "US-005",
@@ -63,7 +63,7 @@
         "npm run build succeeds",
         "Verify in Raycast: jobs list loads with real API"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "id": "US-006",

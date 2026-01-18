@@ -54,3 +54,10 @@ When unsure about API usage, crawl the official documentation first.
 
 - Commit after each completed task
 - Use descriptive commit messages
+
+## Notes
+
+- Raycast CLI reads manifest fields from `package.json` (title, icon, preferences, commands) and generates `raycast-env.d.ts` from them.
+- Place extension icons under `assets/` and reference them as `assets/...` in manifests.
+- In sandboxed runs, set `HOME` to a repo-local directory when using `ray build` to avoid writes to `~/.config`.
+- Harvest API jobs can be filtered by `status` and paginated via `Link` headers; `HarvestClient.listAll` is the expected way to traverse pages.

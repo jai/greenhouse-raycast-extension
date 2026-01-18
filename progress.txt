@@ -4,3 +4,13 @@
 - Added Raycast preferences for Harvest API key and optional base URL.
 
 - Added a typed Harvest client wrapper in src/api/harvest.ts for auth, pagination, and request handling.
+
+- Completed US-004 Build Greenhouse root command.
+  - Files changed: src/index.tsx, src/jobs/JobsList.tsx, src/api/harvest.ts, package.json, raycast.json, assets/command-icon.png, raycast-env.d.ts, prd.json.
+  - Decisions: root command lists Jobs and pushes to a placeholder JobsList; moved manifest fields into package.json; icon now lives under assets/; lint runs eslint+prettier locally to avoid Raycast API network checks.
+  - Gotchas: ray build writes under HOME/.config, so set HOME to a repo-local path when running in sandbox.
+
+- Completed US-005 Build JobsList view.
+  - Files changed: src/jobs/JobsList.tsx, src/jobs/JobPipeline.tsx, src/jobs/types.ts, prd.json.
+  - Decisions: Jobs list uses Harvest `status=open` filter and HarvestClient.listAll to follow Link pagination; JobPipeline stub added to accept job data and unblock navigation.
+  - Gotchas: Use `npx prettier` since Prettier is not available as a global binary.
