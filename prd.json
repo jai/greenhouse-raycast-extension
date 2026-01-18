@@ -148,6 +148,50 @@
         "npm test passes"
       ],
       "passes": true
+    },
+    {
+      "id": "US-013",
+      "priority": 13,
+      "title": "Avoid empty-state flash while loading lists",
+      "acceptance": [
+        "Jobs list does not render EmptyView while loading",
+        "Pipeline list does not render EmptyView while loading",
+        "npm run build passes"
+      ],
+      "passes": false
+    },
+    {
+      "id": "US-014",
+      "priority": 14,
+      "title": "Restore global fetch after tests",
+      "acceptance": [
+        "fetch mocks are cleaned up after each test",
+        "tests do not leak global state across files",
+        "npm test passes"
+      ],
+      "passes": false
+    },
+    {
+      "id": "US-015",
+      "priority": 15,
+      "title": "Normalize greenhouse-client base URL",
+      "acceptance": [
+        "greenhouse-client falls back to default base URL when baseUrl is empty",
+        "greenhouse-client trims whitespace in baseUrl before use",
+        "npm run build passes"
+      ],
+      "passes": false
+    },
+    {
+      "id": "US-016",
+      "priority": 16,
+      "title": "Remove unused raycast.json manifest",
+      "acceptance": [
+        "raycast.json is removed from the repo",
+        "package.json remains the sole manifest for commands/preferences/icons",
+        "npm run build passes"
+      ],
+      "passes": false
     }
   ]
 }

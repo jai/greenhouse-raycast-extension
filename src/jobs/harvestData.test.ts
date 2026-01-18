@@ -40,10 +40,10 @@ describe("fetchOpenJobs", () => {
   it("fetches open jobs across pages", async () => {
     const client = new HarvestClient({ apiKey: "test-key" });
     const firstPage: HarvestJob[] = [
-      { id: 101, name: "Designer", status: "open" },
+      { id: 101, name: "Designer", status: "open", confidential: false },
     ];
     const secondPage: HarvestJob[] = [
-      { id: 202, name: "Engineer", status: "open" },
+      { id: 202, name: "Engineer", status: "open", confidential: true },
     ];
 
     const fetchMock = vi.fn(async (input: RequestInfo | URL) => {

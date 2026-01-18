@@ -1,6 +1,10 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { HarvestApplication, HarvestJobStage } from "./types";
-import { buildPipelineSections, getDaysSince } from "./pipelineUtils";
+import {
+  buildCandidateApplicationUrl,
+  buildPipelineSections,
+  getDaysSince,
+} from "./pipelineUtils";
 
 describe("getDaysSince", () => {
   beforeEach(() => {
@@ -98,5 +102,25 @@ describe("buildPipelineSections", () => {
     expect(sections[1]?.applications).toHaveLength(1);
     expect(sections[2]?.applications).toHaveLength(1);
     expect(sections[3]?.applications).toHaveLength(1);
+  });
+});
+
+describe("buildCandidateApplicationUrl", () => {
+  it("builds a candidate application URL with the default base", () => {
+    expect(buildCandidateApplicationUrl(undefined, 123, 456)).toBe(
+      "https://s101.recruiting.eu.greenhouse.io/people/123/applications/456/redesign",
+    );
+  });
+
+  it("trims whitespace and trailing slashes from the base URL", () => {
+    expect(
+      buildCandidateApplicationUrl(
+        " https://s101.recruiting.eu.greenhouse.io/ ",
+        123,
+        456,
+      ),
+    ).toBe(
+      "https://s101.recruiting.eu.greenhouse.io/people/123/applications/456/redesign",
+    );
   });
 });

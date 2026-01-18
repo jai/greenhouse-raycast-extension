@@ -2,7 +2,25 @@ export interface HarvestJob {
   id: number;
   name: string;
   status: "open" | "closed" | "draft" | string;
+  confidential: boolean;
   requisition_id?: string | null;
+}
+
+export interface HarvestJobPost {
+  id: number;
+  title: string;
+  job_id: number;
+  active: boolean;
+  live: boolean;
+  internal: boolean;
+  external: boolean;
+}
+
+export interface JobListItem {
+  job_id: number;
+  title: string;
+  hasInternal: boolean;
+  hasExternal: boolean;
 }
 
 export interface HarvestJobStage {

@@ -6,33 +6,32 @@ import {
   getPreferenceValues,
   showToast,
 } from "@raycast/api";
-import { useEffect, useMemo, useState } from "react";
+import { useCachedPromise } from "@raycast/utils";
+import { useMemo, useState } from "react";
 import { HarvestClient } from "../api/harvest";
 import {
   type HarvestErrorDisplay,
   getHarvestErrorDisplay,
 } from "../api/harvestErrors";
-import type {
-  HarvestApplication,
-  HarvestCandidate,
-  HarvestJob,
-  HarvestJobStage,
-} from "./types";
+import { getCachedPipeline, setCachedPipeline } from "../cache/cacheUtils";
+import type { JobListItem } from "./types";
 import {
   buildCandidateName,
+  buildCandidateApplicationUrl,
   buildPipelineSections,
   getDaysSince,
 } from "./pipelineUtils";
 import { fetchJobPipelineData } from "./harvestData";
 
 interface JobPipelineProps {
-  job: HarvestJob;
+  job: JobListItem;
 }
 
 export default function JobPipeline({ job }: JobPipelineProps) {
   const preferences = getPreferenceValues<{
     harvestApiKey: string;
     harvestBaseUrl?: string;
+    recruitingBaseUrl?: string;
   }>();
   const client = useMemo(
     () =>
@@ -42,54 +41,38 @@ export default function JobPipeline({ job }: JobPipelineProps) {
       }),
     [preferences.harvestApiKey, preferences.harvestBaseUrl],
   );
-  const [stages, setStages] = useState<HarvestJobStage[]>([]);
-  const [applications, setApplications] = useState<HarvestApplication[]>([]);
-  const [candidates, setCandidates] = useState<
-    Record<number, HarvestCandidate>
-  >({});
-  const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<HarvestErrorDisplay | null>(null);
-
-  useEffect(() => {
-    let cancelled = false;
-
-    const loadPipeline = async () => {
-      setIsLoading(true);
-      setError(null);
-
-      try {
-        const pipelineData = await fetchJobPipelineData(client, job.id);
-
-        if (!cancelled) {
-          setStages(pipelineData.stages);
-          setApplications(pipelineData.applications);
-          setCandidates(pipelineData.candidates);
+  const cachedPipeline = useMemo(
+    () => getCachedPipeline(job.job_id),
+    [job.job_id],
+  );
+  const { data, isLoading } = useCachedPromise(
+    (jobId) => fetchJobPipelineData(client, jobId),
+    [job.job_id],
+    {
+      initialData: cachedPipeline ?? undefined,
+      onData: (pipelineData) => {
+        setCachedPipeline(job.job_id, pipelineData);
+        setError(null);
+      },
+      onError: async (err) => {
+        const errorDisplay = getHarvestErrorDisplay(err, "pipeline");
+        setError(errorDisplay);
+        if (errorDisplay.toastTitle) {
+          await showToast({
+            style: Toast.Style.Failure,
+            title: errorDisplay.toastTitle,
+            message: errorDisplay.toastMessage,
+          });
         }
-      } catch (err) {
-        if (!cancelled) {
-          const errorDisplay = getHarvestErrorDisplay(err, "pipeline");
-          setError(errorDisplay);
-          if (errorDisplay.toastTitle) {
-            await showToast({
-              style: Toast.Style.Failure,
-              title: errorDisplay.toastTitle,
-              message: errorDisplay.toastMessage,
-            });
-          }
-        }
-      } finally {
-        if (!cancelled) {
-          setIsLoading(false);
-        }
-      }
-    };
+      },
+    },
+  );
 
-    void loadPipeline();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [client, job.id]);
+  const stages = data?.stages ?? [];
+  const applications = data?.applications ?? [];
+  const candidates = data?.candidates ?? {};
+  const showLoading = isLoading && data === undefined;
 
   const sections = useMemo(
     () => buildPipelineSections(applications, stages),
@@ -100,10 +83,10 @@ export default function JobPipeline({ job }: JobPipelineProps) {
 
   return (
     <List
-      isLoading={isLoading}
-      searchBarPlaceholder={`Search ${job.name} pipeline`}
+      isLoading={showLoading}
+      searchBarPlaceholder={`Search ${job.title} pipeline`}
     >
-      {!hasApplications ? (
+      {!showLoading && !hasApplications ? (
         <List.EmptyView
           title={error ? error.title : "No applications yet"}
           description={
@@ -116,7 +99,8 @@ export default function JobPipeline({ job }: JobPipelineProps) {
         sections.map((section) => (
           <List.Section
             key={section.id}
-            title={`${section.title} (${section.applications.length})`}
+            title={section.title}
+            subtitle={`${section.applications.length}`}
           >
             {section.applications.map((application) => {
               const candidate = candidates[application.candidate_id];
@@ -128,7 +112,11 @@ export default function JobPipeline({ job }: JobPipelineProps) {
               );
               const activityLabel =
                 daysSince === null ? undefined : `${daysSince}d`;
-              const candidateUrl = `https://app.greenhouse.io/people/${application.candidate_id}?application_id=${application.id}`;
+              const candidateUrl = buildCandidateApplicationUrl(
+                preferences.recruitingBaseUrl,
+                application.candidate_id,
+                application.id,
+              );
 
               return (
                 <List.Item

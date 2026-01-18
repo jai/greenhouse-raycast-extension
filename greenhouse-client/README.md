@@ -3,10 +3,12 @@
 Lightweight client for Harvest v1 endpoints. Supports read + write calls by allowing any HTTP method/path and optional `On-Behalf-Of` header.
 
 ## Setup
+
+Set the `GREENHOUSE_HARVEST_API_KEY` environment variable:
+
 ```bash
-set -a
-source ../.env
-set +a
+# From 1Password:
+export GREENHOUSE_HARVEST_API_KEY="$(op read 'op://greenhouse-pipeline-chat-worker/Candidate Status Tracker Application/greenhouse/harvest api key')"
 ```
 
 ## Examples

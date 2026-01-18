@@ -5,6 +5,7 @@ import type {
 } from "./types";
 
 const MILLISECONDS_PER_DAY = 1000 * 60 * 60 * 24;
+const DEFAULT_RECRUITING_BASE_URL = "https://s101.recruiting.eu.greenhouse.io";
 
 export interface PipelineSection {
   id: string;
@@ -125,4 +126,16 @@ export const buildPipelineSections = (
   }
 
   return output;
+};
+
+export const buildCandidateApplicationUrl = (
+  baseUrl: string | undefined,
+  candidateId: number,
+  applicationId: number,
+) => {
+  const resolvedBaseUrl = baseUrl?.trim();
+  const normalizedBaseUrl = (
+    resolvedBaseUrl || DEFAULT_RECRUITING_BASE_URL
+  ).replace(/\/$/, "");
+  return `${normalizedBaseUrl}/people/${candidateId}/applications/${applicationId}/redesign`;
 };

@@ -22,6 +22,15 @@
       "required": false,
       "placeholder": "https://harvest.greenhouse.io/v1",
       "description": "Optional override for the Harvest API base URL."
+    },
+    {
+      "name": "recruitingBaseUrl",
+      "title": "Recruiting Base URL",
+      "type": "textfield",
+      "required": false,
+      "placeholder": "https://s101.recruiting.eu.greenhouse.io",
+      "default": "https://s101.recruiting.eu.greenhouse.io",
+      "description": "Optional override for the Greenhouse Recruiting app base URL."
     }
   ],
   "commands": [
@@ -31,6 +40,13 @@
       "description": "Browse Greenhouse jobs and pipelines",
       "mode": "view",
       "icon": "assets/command-icon.png"
+    },
+    {
+      "name": "refresh-cache",
+      "title": "Refresh Greenhouse Cache",
+      "description": "Background refresh of cached jobs and pipeline data",
+      "mode": "no-view",
+      "interval": "1h"
     }
   ],
   "scripts": {
@@ -39,7 +55,8 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "@raycast/api": "^1.104.1"
+    "@raycast/api": "^1.104.1",
+    "@raycast/utils": "^2.2.2"
   },
   "devDependencies": {
     "@raycast/eslint-config": "^2.1.1",

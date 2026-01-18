@@ -1,20 +1,22 @@
 import {
   Action,
   ActionPanel,
+  Color,
   List,
   Toast,
   getPreferenceValues,
   showToast,
 } from "@raycast/api";
-import { useEffect, useMemo, useState } from "react";
+import { useCachedPromise } from "@raycast/utils";
+import { useMemo, useState } from "react";
 import { HarvestClient } from "../api/harvest";
 import {
   type HarvestErrorDisplay,
   getHarvestErrorDisplay,
 } from "../api/harvestErrors";
+import { getCachedJobs, setCachedJobs } from "../cache/cacheUtils";
 import JobPipeline from "./JobPipeline";
 import { fetchOpenJobs } from "./harvestData";
-import type { HarvestJob } from "./types";
 
 export default function JobsList() {
   const preferences = getPreferenceValues<{
@@ -29,50 +31,37 @@ export default function JobsList() {
       }),
     [preferences.harvestApiKey, preferences.harvestBaseUrl],
   );
-  const [jobs, setJobs] = useState<HarvestJob[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<HarvestErrorDisplay | null>(null);
+  const cachedJobs = useMemo(() => getCachedJobs(), []);
 
-  useEffect(() => {
-    let cancelled = false;
-
-    const loadJobs = async () => {
-      setIsLoading(true);
-      setError(null);
-      try {
-        const data = await fetchOpenJobs(client);
-        if (!cancelled) {
-          setJobs(data);
+  const { data, isLoading } = useCachedPromise(
+    () => fetchOpenJobs(client),
+    [],
+    {
+      initialData: cachedJobs ?? undefined,
+      onData: (data) => {
+        setCachedJobs(data);
+        setError(null);
+      },
+      onError: async (err) => {
+        const errorDisplay = getHarvestErrorDisplay(err, "jobs");
+        setError(errorDisplay);
+        if (errorDisplay.toastTitle) {
+          await showToast({
+            style: Toast.Style.Failure,
+            title: errorDisplay.toastTitle,
+            message: errorDisplay.toastMessage,
+          });
         }
-      } catch (err) {
-        if (!cancelled) {
-          const errorDisplay = getHarvestErrorDisplay(err, "jobs");
-          setError(errorDisplay);
-          if (errorDisplay.toastTitle) {
-            await showToast({
-              style: Toast.Style.Failure,
-              title: errorDisplay.toastTitle,
-              message: errorDisplay.toastMessage,
-            });
-          }
-        }
-      } finally {
-        if (!cancelled) {
-          setIsLoading(false);
-        }
-      }
-    };
-
-    void loadJobs();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [client]);
+      },
+    },
+  );
+  const jobs = data ?? [];
+  const showLoading = isLoading && data === undefined;
 
   return (
-    <List isLoading={isLoading} searchBarPlaceholder="Search jobs">
-      {jobs.length === 0 ? (
+    <List isLoading={showLoading} searchBarPlaceholder="Search jobs">
+      {!showLoading && jobs.length === 0 ? (
         <List.EmptyView
           title={error ? error.title : "No open jobs"}
           description={
@@ -84,7 +73,14 @@ export default function JobsList() {
           <List.Item
             key={job.id}
             title={job.name}
-            accessories={[{ tag: job.status }]}
+            accessories={[
+              {
+                tag: {
+                  value: job.confidential ? "internal" : job.status,
+                  color: job.confidential ? Color.Yellow : Color.Green,
+                },
+              },
+            ]}
             actions={
               <ActionPanel>
                 <Action.Push

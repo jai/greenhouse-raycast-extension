@@ -4,7 +4,9 @@ import type {
   HarvestApplication,
   HarvestCandidate,
   HarvestJob,
+  HarvestJobPost,
   HarvestJobStage,
+  JobListItem,
 } from "./types";
 
 const CANDIDATE_BATCH_SIZE = 50;
@@ -17,6 +19,33 @@ export interface JobPipelineData {
 
 export const fetchOpenJobs = async (client: HarvestClient) => {
   return client.listAll<HarvestJob>("jobs", { status: "open" });
+};
+
+export const fetchActiveJobPosts = async (
+  client: HarvestClient,
+): Promise<JobListItem[]> => {
+  const posts = await client.listAll<HarvestJobPost>("job_posts", {
+    active: "true",
+  });
+
+  const jobMap = new Map<number, JobListItem>();
+
+  for (const post of posts) {
+    const existing = jobMap.get(post.job_id);
+    if (existing) {
+      existing.hasInternal = existing.hasInternal || post.internal;
+      existing.hasExternal = existing.hasExternal || post.external;
+    } else {
+      jobMap.set(post.job_id, {
+        job_id: post.job_id,
+        title: post.title,
+        hasInternal: post.internal,
+        hasExternal: post.external,
+      });
+    }
+  }
+
+  return Array.from(jobMap.values());
 };
 
 export const fetchJobPipelineData = async (
