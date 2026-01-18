@@ -136,7 +136,7 @@
         "Open Candidate action uses the updated URL",
         "npm run build passes"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "id": "US-012",

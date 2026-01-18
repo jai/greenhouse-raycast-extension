@@ -157,7 +157,7 @@ export default function JobPipeline({ job }: JobPipelineProps) {
               );
               const activityLabel =
                 daysSince === null ? undefined : `${daysSince}d`;
-              const candidateUrl = `https://app.greenhouse.io/people/${application.candidate_id}`;
+              const candidateUrl = `https://app.greenhouse.io/people/${application.candidate_id}?application_id=${application.id}`;
 
               return (
                 <List.Item

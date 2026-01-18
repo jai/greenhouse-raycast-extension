@@ -2,6 +2,7 @@
 # Each iteration appends what was completed
 
 ## Codebase Patterns
+- Greenhouse candidate profile URLs should include `application_id` to open the correct application record.
 - Use `getHarvestErrorDisplay` in `src/api/harvestErrors.ts` for consistent Harvest auth/rate-limit toasts and empty-state messaging.
 - Harvest candidates endpoint supports `candidate_ids` with max 50; batch requests when resolving application candidate names.
 - Treat empty Harvest base URL preferences as "use the default" (trim and fall back in `HarvestClient`).
@@ -59,4 +60,11 @@
 - Files changed: src/jobs/JobPipeline.tsx, prd.json, progress.txt.
 - **Learnings for future iterations:**
   - Harvest applications list supports a status filter (active, converted, hired, rejected); use status=active for pipeline views.
+---
+
+## 2026-01-18 15:44 - US-011
+- Updated candidate deep link to include application_id so the correct application opens in Greenhouse.
+- Files changed: src/jobs/JobPipeline.tsx, prd.json, progress.txt.
+- **Learnings for future iterations:**
+  - Greenhouse candidate profile URLs can include `application_id` to open a specific application.
 ---
