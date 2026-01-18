@@ -1,0 +1,8 @@
+{
+  "name": "greenhouse-client",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "harvest": "node src/cli.js"
+  }
+}
