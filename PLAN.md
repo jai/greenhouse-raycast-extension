@@ -113,6 +113,16 @@ Raycast docs emphasize running `npm run build` and `npm run lint` before submiss
 7. Add tests + fixtures for API responses and view-model transformations.
 8. Validate UX details (navigation titles, action naming, empty states).
 
+## Status (Current)
+- Steps 1-6 and 8 are implemented.
+- Step 7 is partial: unit tests exist for pagination and pipeline utils, but no integration-style fetch tests yet.
+
+## Fixes / Next Steps
+- Treat empty `harvestBaseUrl` preference as unset to avoid invalid URL crashes.
+- Filter pipeline applications to `status=active` to match Harvest behavior.
+- Include `application_id` in candidate deep links for multi-application candidates.
+- Add fetch-mocked tests for jobs + pipeline flows.
+
 ## References
 - Raycast UI/UX guidelines and navigation guidance:
   - https://developers.raycast.com/basics/prepare-an-extension-for-store

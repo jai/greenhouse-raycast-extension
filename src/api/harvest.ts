@@ -44,7 +44,8 @@ export class HarvestClient {
       throw new Error("GREENHOUSE_HARVEST_API_KEY is required");
     }
     this.apiKey = apiKey;
-    this.baseUrl = baseUrl.replace(/\/$/, "");
+    const resolvedBaseUrl = baseUrl?.trim();
+    this.baseUrl = (resolvedBaseUrl || DEFAULT_BASE_URL).replace(/\/$/, "");
     this.onBehalfOf = onBehalfOf ?? null;
   }
 

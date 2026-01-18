@@ -4,6 +4,7 @@
 ## Codebase Patterns
 - Use `getHarvestErrorDisplay` in `src/api/harvestErrors.ts` for consistent Harvest auth/rate-limit toasts and empty-state messaging.
 - Harvest candidates endpoint supports `candidate_ids` with max 50; batch requests when resolving application candidate names.
+- Treat empty Harvest base URL preferences as "use the default" (trim and fall back in `HarvestClient`).
 
 - Added Raycast preferences for Harvest API key and optional base URL.
 
@@ -44,4 +45,11 @@
 - **Learnings for future iterations:**
   - Use `getHarvestErrorDisplay` for consistent Harvest error messaging and toast handling.
   - Empty states should distinguish between no data and API failures.
+---
+
+## 2026-01-18 15:38 - US-009
+- Handled empty Harvest base URL preference by trimming and falling back to the default base URL; added coverage for the fallback behavior.
+- Files changed: src/api/harvest.ts, src/api/harvest.test.ts, prd.json, progress.txt.
+- **Learnings for future iterations:**
+  - Harvest base URL preferences may come through as empty/whitespace; trim and default to the standard base URL in the client.
 ---

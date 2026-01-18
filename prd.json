@@ -104,6 +104,50 @@
         "npm run build passes"
       ],
       "passes": true
+    },
+    {
+      "id": "US-009",
+      "priority": 9,
+      "title": "Handle empty Harvest base URL preference",
+      "acceptance": [
+        "Empty harvestBaseUrl preference falls back to default",
+        "Harvest client does not throw when base URL is empty",
+        "npm run build passes"
+      ],
+      "passes": true
+    },
+    {
+      "id": "US-010",
+      "priority": 10,
+      "title": "Filter pipeline applications to active only",
+      "acceptance": [
+        "Harvest applications fetch includes status=active",
+        "Pipeline view excludes rejected/hired applications",
+        "npm run build passes"
+      ],
+      "passes": false
+    },
+    {
+      "id": "US-011",
+      "priority": 11,
+      "title": "Deep link to the correct application",
+      "acceptance": [
+        "Candidate link includes application_id query param",
+        "Open Candidate action uses the updated URL",
+        "npm run build passes"
+      ],
+      "passes": false
+    },
+    {
+      "id": "US-012",
+      "priority": 12,
+      "title": "Add integration-style fetch tests",
+      "acceptance": [
+        "Mocked fetch tests cover jobs list flow",
+        "Mocked fetch tests cover pipeline flow",
+        "npm test passes"
+      ],
+      "passes": false
     }
   ]
 }

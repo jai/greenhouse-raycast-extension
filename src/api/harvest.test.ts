@@ -23,3 +23,19 @@ describe("HarvestClient.parseNextLink", () => {
     expect(client.parseNextLink(header)).toBeNull();
   });
 });
+
+describe("HarvestClient baseUrl handling", () => {
+  it("falls back to the default base URL when baseUrl is empty", () => {
+    const client = new HarvestClient({ apiKey: "test-key", baseUrl: "" });
+    expect(client.buildUrl("/jobs")).toBe(
+      "https://harvest.greenhouse.io/v1/jobs",
+    );
+  });
+
+  it("falls back to the default base URL when baseUrl is whitespace", () => {
+    const client = new HarvestClient({ apiKey: "test-key", baseUrl: "  " });
+    expect(client.buildUrl("jobs")).toBe(
+      "https://harvest.greenhouse.io/v1/jobs",
+    );
+  });
+});
