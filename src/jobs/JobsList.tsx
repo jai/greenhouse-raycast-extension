@@ -13,6 +13,7 @@ import {
   getHarvestErrorDisplay,
 } from "../api/harvestErrors";
 import JobPipeline from "./JobPipeline";
+import { fetchOpenJobs } from "./harvestData";
 import type { HarvestJob } from "./types";
 
 export default function JobsList() {
@@ -39,9 +40,7 @@ export default function JobsList() {
       setIsLoading(true);
       setError(null);
       try {
-        const data = await client.listAll<HarvestJob>("jobs", {
-          status: "open",
-        });
+        const data = await fetchOpenJobs(client);
         if (!cancelled) {
           setJobs(data);
         }

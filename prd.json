@@ -147,7 +147,7 @@
         "Mocked fetch tests cover pipeline flow",
         "npm test passes"
       ],
-      "passes": false
+      "passes": true
     }
   ]
 }

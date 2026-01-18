@@ -62,3 +62,4 @@ When unsure about API usage, crawl the official documentation first.
 - In sandboxed runs, set `HOME` to a repo-local directory when using `ray build` to avoid writes to `~/.config`.
 - Harvest API jobs can be filtered by `status` and paginated via `Link` headers; `HarvestClient.listAll` is the expected way to traverse pages.
 - Use `getHarvestErrorDisplay` from `src/api/harvestErrors.ts` for consistent Harvest auth/rate-limit messaging and toast handling.
+- Use `src/jobs/harvestData.ts` helpers for Harvest list/pipeline fetch flows to keep views lean and testable.

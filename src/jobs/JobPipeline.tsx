@@ -19,18 +19,15 @@ import type {
   HarvestJobStage,
 } from "./types";
 import {
-  buildCandidateMap,
   buildCandidateName,
   buildPipelineSections,
-  chunkIds,
   getDaysSince,
 } from "./pipelineUtils";
+import { fetchJobPipelineData } from "./harvestData";
 
 interface JobPipelineProps {
   job: HarvestJob;
 }
-
-const CANDIDATE_BATCH_SIZE = 50;
 
 export default function JobPipeline({ job }: JobPipelineProps) {
   const preferences = getPreferenceValues<{
@@ -61,38 +58,12 @@ export default function JobPipeline({ job }: JobPipelineProps) {
       setError(null);
 
       try {
-        const [stageData, applicationData] = await Promise.all([
-          client.listAll<HarvestJobStage>(`jobs/${job.id}/stages`),
-          client.listAll<HarvestApplication>("applications", {
-            job_id: job.id,
-            status: "active",
-          }),
-        ]);
+        const pipelineData = await fetchJobPipelineData(client, job.id);
 
         if (!cancelled) {
-          setStages(stageData);
-          setApplications(applicationData);
-        }
-
-        const candidateIds = Array.from(
-          new Set(
-            applicationData.map((application) => application.candidate_id),
-          ),
-        );
-        const candidateData: HarvestCandidate[] = [];
-
-        if (candidateIds.length) {
-          const idChunks = chunkIds(candidateIds, CANDIDATE_BATCH_SIZE);
-          for (const chunk of idChunks) {
-            const batch = await client.listAll<HarvestCandidate>("candidates", {
-              candidate_ids: chunk.join(","),
-            });
-            candidateData.push(...batch);
-          }
-        }
-
-        if (!cancelled) {
-          setCandidates(buildCandidateMap(candidateData));
+          setStages(pipelineData.stages);
+          setApplications(pipelineData.applications);
+          setCandidates(pipelineData.candidates);
         }
       } catch (err) {
         if (!cancelled) {

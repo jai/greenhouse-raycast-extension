@@ -6,6 +6,7 @@
 - Use `getHarvestErrorDisplay` in `src/api/harvestErrors.ts` for consistent Harvest auth/rate-limit toasts and empty-state messaging.
 - Harvest candidates endpoint supports `candidate_ids` with max 50; batch requests when resolving application candidate names.
 - Treat empty Harvest base URL preferences as "use the default" (trim and fall back in `HarvestClient`).
+- Use `src/jobs/harvestData.ts` helpers for Harvest data loading so views stay lean and testable.
 
 - Added Raycast preferences for Harvest API key and optional base URL.
 
@@ -67,4 +68,13 @@
 - Files changed: src/jobs/JobPipeline.tsx, prd.json, progress.txt.
 - **Learnings for future iterations:**
   - Greenhouse candidate profile URLs can include `application_id` to open a specific application.
+---
+
+## 2026-01-18 15:57 - US-012
+- Added Harvest data fetch helpers for jobs list and pipeline flows and wired components to use them.
+- Added mocked-fetch integration tests covering jobs list pagination and pipeline stage/application/candidate fetches.
+- Files changed: src/jobs/harvestData.ts, src/jobs/JobsList.tsx, src/jobs/JobPipeline.tsx, src/jobs/harvestData.test.ts, prd.json, progress.txt.
+- **Learnings for future iterations:**
+  - Prefer `src/jobs/harvestData.ts` for Harvest list/pipeline fetches so UI components stay testable.
+  - Integration tests can mock `fetch` and inspect URLs/query params to validate Harvest flows.
 ---
