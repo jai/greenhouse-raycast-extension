@@ -1,3 +1,6 @@
 # Progress Log
 # Each iteration appends what was completed
 
+- Added Raycast preferences for Harvest API key and optional base URL.
+
+- Added a typed Harvest client wrapper in src/api/harvest.ts for auth, pagination, and request handling.

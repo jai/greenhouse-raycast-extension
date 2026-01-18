@@ -1,0 +1,33 @@
+{
+  "$schema": "https://www.raycast.com/schemas/extension.json",
+  "name": "greenhouse",
+  "title": "Greenhouse",
+  "description": "View Greenhouse jobs and applicant pipeline stages",
+  "icon": "command-icon.png",
+  "author": "jai",
+  "preferences": [
+    {
+      "name": "harvestApiKey",
+      "title": "Harvest API Key",
+      "type": "password",
+      "required": true,
+      "description": "Greenhouse Harvest API key with read access."
+    },
+    {
+      "name": "harvestBaseUrl",
+      "title": "Harvest Base URL",
+      "type": "textfield",
+      "required": false,
+      "placeholder": "https://harvest.greenhouse.io/v1",
+      "description": "Optional override for the Harvest API base URL."
+    }
+  ],
+  "commands": [
+    {
+      "name": "index",
+      "title": "Greenhouse",
+      "description": "Browse Greenhouse jobs and pipelines",
+      "mode": "view"
+    }
+  ]
+}

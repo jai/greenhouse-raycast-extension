@@ -1,0 +1,17 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+
+# Ralph loop files (don't commit these)
+ralph.log
+.last-branch
+archives/
+
+# OS files
+.DS_Store
+
+# IDE
+.idea/
+.vscode/
