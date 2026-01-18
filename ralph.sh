@@ -66,15 +66,24 @@ for i in $(seq 1 $MAX_ITERATIONS); do
   echo "═══════════════════════════════════════════════════════"
 
   # Run codex with piped prompt (agent reads files itself)
-  OUTPUT=$(cat "$PROMPT_FILE" | codex exec --full-auto 2>&1 | tee /dev/stderr) || true
+  # Using --dangerously-bypass-approvals-and-sandbox to allow git writes
+  OUTPUT=$(cat "$PROMPT_FILE" | codex exec --dangerously-bypass-approvals-and-sandbox 2>&1 | tee /dev/stderr) || true
 
   if echo "$OUTPUT" | grep -q "<promise>COMPLETE</promise>"; then
-    echo ""
-    echo "═══════════════════════════════════════════════════════"
-    echo "  ✓ Ralph completed all tasks!"
-    echo "  Completed at iteration $i of $MAX_ITERATIONS"
-    echo "═══════════════════════════════════════════════════════"
-    exit 0
+    # Verify ALL stories actually have passes: true before trusting the signal
+    REMAINING=$(jq '[.stories[] | select(.passes == false)] | length' "$PRD_FILE")
+    if [ "$REMAINING" -eq 0 ]; then
+      echo ""
+      echo "═══════════════════════════════════════════════════════"
+      echo "  ✓ Ralph completed all tasks!"
+      echo "  Completed at iteration $i of $MAX_ITERATIONS"
+      echo "═══════════════════════════════════════════════════════"
+      exit 0
+    else
+      echo ""
+      echo "⚠️  Agent claimed COMPLETE but $REMAINING stories still have passes: false"
+      echo "   Continuing loop..."
+    fi
   fi
 
   echo "Iteration $i complete. Continuing..."

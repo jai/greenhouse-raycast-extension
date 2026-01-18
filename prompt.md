@@ -61,11 +61,15 @@ When unsure about API usage, crawl official documentation first.
 
 ## Completion Signal
 
-When ALL stories in `prd.json` have `passes: true`, respond with exactly:
+**CRITICAL: Check prd.json before outputting completion signal!**
+
+1. Read prd.json
+2. Count stories where `passes: false`
+3. If count > 0, do NOT output completion signal
+4. ONLY if ALL stories have `passes: true`, output:
 
 ```
 <promise>COMPLETE</promise>
 ```
 
-If ANY story still has `passes: false`, do NOT output the completion signal.
-Implement one story and stop.
+**WARNING:** Do NOT output `<promise>COMPLETE</promise>` unless you have verified EVERY story in prd.json has `passes: true`. The loop will continue if you output it prematurely.
