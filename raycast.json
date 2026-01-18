@@ -3,7 +3,7 @@
   "name": "greenhouse",
   "title": "Greenhouse",
   "description": "View Greenhouse jobs and applicant pipeline stages",
-  "icon": "command-icon.png",
+  "icon": "assets/command-icon.png",
   "author": "jai",
   "preferences": [
     {
@@ -27,6 +27,7 @@
       "name": "index",
       "title": "Greenhouse",
       "description": "Browse Greenhouse jobs and pipelines",
+      "icon": "command-icon.png",
       "mode": "view"
     }
   ]

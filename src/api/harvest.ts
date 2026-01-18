@@ -1,6 +1,9 @@
 const DEFAULT_BASE_URL = "https://harvest.greenhouse.io/v1";
 
-export type QueryParams = Record<string, string | number | boolean | null | undefined>;
+export type QueryParams = Record<
+  string,
+  string | number | boolean | null | undefined
+>;
 
 export interface HarvestClientOptions {
   apiKey: string;
@@ -32,7 +35,11 @@ export class HarvestClient {
   private baseUrl: string;
   private onBehalfOf: string | number | null;
 
-  constructor({ apiKey, baseUrl = DEFAULT_BASE_URL, onBehalfOf }: HarvestClientOptions) {
+  constructor({
+    apiKey,
+    baseUrl = DEFAULT_BASE_URL,
+    onBehalfOf,
+  }: HarvestClientOptions) {
     if (!apiKey) {
       throw new Error("GREENHOUSE_HARVEST_API_KEY is required");
     }
@@ -74,7 +81,9 @@ export class HarvestClient {
     }
     const segments = linkHeader.split(",");
     for (const segment of segments) {
-      const [urlPart, relPart] = segment.split(";").map((value) => value.trim());
+      const [urlPart, relPart] = segment
+        .split(";")
+        .map((value) => value.trim());
       if (relPart === 'rel="next"') {
         return urlPart.replace(/^</, "").replace(/>$/, "");
       }
@@ -112,7 +121,7 @@ export class HarvestClient {
   }
 
   async listAll<T = unknown>(path: string, params?: QueryParams): Promise<T[]> {
-    let url = this.buildUrl(path, params);
+    let url: string | null = this.buildUrl(path, params);
     const results: T[] = [];
 
     while (url) {
