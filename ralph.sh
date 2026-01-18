@@ -1,138 +1,89 @@
 #!/bin/bash
+# Ralph Wiggum - Long-running AI agent loop
+# Usage: ./ralph.sh [max_iterations]
+
 set -e
 
-MAX_ITERATIONS="${1:-10}"
-LOG_FILE="ralph.log"
-LAST_BRANCH_FILE=".last-branch"
+MAX_ITERATIONS=${1:-10}
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PRD_FILE="$SCRIPT_DIR/prd.json"
+PROGRESS_FILE="$SCRIPT_DIR/progress.txt"
+PROMPT_FILE="$SCRIPT_DIR/prompt.md"
+ARCHIVE_DIR="$SCRIPT_DIR/archive"
+LAST_BRANCH_FILE="$SCRIPT_DIR/.last-branch"
+LOG_FILE="$SCRIPT_DIR/ralph.log"
 
 # Log to file and stdout
 exec > >(tee -a "$LOG_FILE") 2>&1
 
-echo ""
-echo "========================================"
-echo "Ralph Loop Started: $(date)"
-echo "========================================"
-
-# Check dependencies
-if ! command -v jq &> /dev/null; then
-  echo "ERROR: jq is required. Install with: brew install jq"
-  exit 1
-fi
-
-# Read branch from prd.json
-BRANCH_NAME=$(jq -r '.branchName // "main"' prd.json)
-echo "Branch: $BRANCH_NAME"
-
 # Archive previous run if branch changed
-if [ -f "$LAST_BRANCH_FILE" ]; then
-  LAST_BRANCH=$(cat "$LAST_BRANCH_FILE")
-  if [ "$LAST_BRANCH" != "$BRANCH_NAME" ]; then
-    ARCHIVE_NAME=$(echo "$LAST_BRANCH" | sed 's|ralph/||')
-    ARCHIVE_DIR="archives/$(date +%Y-%m-%d)-$ARCHIVE_NAME"
-    echo "Branch changed from $LAST_BRANCH to $BRANCH_NAME"
-    echo "Archiving previous run to $ARCHIVE_DIR"
-    mkdir -p "$ARCHIVE_DIR"
-    [ -f progress.txt ] && cp progress.txt "$ARCHIVE_DIR/"
-    [ -f ralph.log ] && cp ralph.log "$ARCHIVE_DIR/"
-    # Reset progress for new branch
-    echo "# Progress Log" > progress.txt
-    echo "# Branch: $BRANCH_NAME" >> progress.txt
-    echo "# Started: $(date)" >> progress.txt
-    echo "" >> progress.txt
+if [ -f "$PRD_FILE" ] && [ -f "$LAST_BRANCH_FILE" ]; then
+  CURRENT_BRANCH=$(jq -r '.branchName // empty' "$PRD_FILE" 2>/dev/null || echo "")
+  LAST_BRANCH=$(cat "$LAST_BRANCH_FILE" 2>/dev/null || echo "")
+
+  if [ -n "$CURRENT_BRANCH" ] && [ -n "$LAST_BRANCH" ] && [ "$CURRENT_BRANCH" != "$LAST_BRANCH" ]; then
+    DATE=$(date +%Y-%m-%d)
+    FOLDER_NAME=$(echo "$LAST_BRANCH" | sed 's|^ralph/||')
+    ARCHIVE_FOLDER="$ARCHIVE_DIR/$DATE-$FOLDER_NAME"
+
+    echo "Archiving previous run: $LAST_BRANCH"
+    mkdir -p "$ARCHIVE_FOLDER"
+    [ -f "$PRD_FILE" ] && cp "$PRD_FILE" "$ARCHIVE_FOLDER/"
+    [ -f "$PROGRESS_FILE" ] && cp "$PROGRESS_FILE" "$ARCHIVE_FOLDER/"
+    [ -f "$LOG_FILE" ] && cp "$LOG_FILE" "$ARCHIVE_FOLDER/"
+    echo "   Archived to: $ARCHIVE_FOLDER"
+
+    echo "# Ralph Progress Log" > "$PROGRESS_FILE"
+    echo "Started: $(date)" >> "$PROGRESS_FILE"
+    echo "---" >> "$PROGRESS_FILE"
   fi
 fi
-echo "$BRANCH_NAME" > "$LAST_BRANCH_FILE"
 
-# Verify git branch matches prd.json (optional - create if needed)
-CURRENT_BRANCH=$(git branch --show-current 2>/dev/null || echo "")
-if [ "$CURRENT_BRANCH" != "$BRANCH_NAME" ] && [ -n "$BRANCH_NAME" ]; then
-  echo "Switching to branch: $BRANCH_NAME"
-  git checkout "$BRANCH_NAME" 2>/dev/null || git checkout -b "$BRANCH_NAME"
+# Save current branch
+if [ -f "$PRD_FILE" ]; then
+  CURRENT_BRANCH=$(jq -r '.branchName // empty' "$PRD_FILE" 2>/dev/null || echo "")
+  if [ -n "$CURRENT_BRANCH" ]; then
+    echo "$CURRENT_BRANCH" > "$LAST_BRANCH_FILE"
+  fi
 fi
 
-echo "Max iterations: $MAX_ITERATIONS"
+# Initialize progress file if missing
+if [ ! -f "$PROGRESS_FILE" ]; then
+  echo "# Ralph Progress Log" > "$PROGRESS_FILE"
+  echo "Started: $(date)" >> "$PROGRESS_FILE"
+  echo "---" >> "$PROGRESS_FILE"
+fi
+
 echo ""
+echo "═══════════════════════════════════════════════════════"
+echo "  Starting Ralph - Max iterations: $MAX_ITERATIONS"
+echo "═══════════════════════════════════════════════════════"
 
-for ((i=1; i<=MAX_ITERATIONS; i++)); do
+for i in $(seq 1 $MAX_ITERATIONS); do
   echo ""
-  echo "═══════════════════════════════════════"
-  echo "  Iteration $i / $MAX_ITERATIONS"
-  echo "═══════════════════════════════════════"
+  echo "═══════════════════════════════════════════════════════"
+  echo "  Ralph Iteration $i of $MAX_ITERATIONS"
+  echo "═══════════════════════════════════════════════════════"
 
-  # Check if all stories complete before running
-  INCOMPLETE=$(jq '[.stories[] | select(.passes == false)] | length' prd.json)
-  if [ "$INCOMPLETE" -eq 0 ]; then
+  # Run codex with piped prompt (agent reads files itself)
+  OUTPUT=$(cat "$PROMPT_FILE" | codex exec --full-auto 2>&1 | tee /dev/stderr) || true
+
+  if echo "$OUTPUT" | grep -q "<promise>COMPLETE</promise>"; then
     echo ""
-    echo "✓ ALL STORIES COMPLETE"
+    echo "═══════════════════════════════════════════════════════"
+    echo "  ✓ Ralph completed all tasks!"
+    echo "  Completed at iteration $i of $MAX_ITERATIONS"
+    echo "═══════════════════════════════════════════════════════"
     exit 0
   fi
 
-  # Show next story to work on
-  NEXT_STORY=$(jq -r '[.stories[] | select(.passes == false)] | sort_by(.priority) | .[0] | "\(.id): \(.title)"' prd.json)
-  echo "Next story: $NEXT_STORY"
-  echo ""
-
-  # Build prompt from files
-  PROMPT="$(cat prompt.md)
-
----
-
-## Current State
-
-### prd.json
-\`\`\`json
-$(cat prd.json)
-\`\`\`
-
-### progress.txt
-\`\`\`
-$(cat progress.txt)
-\`\`\`
-
-### AGENTS.md
-\`\`\`
-$(cat AGENTS.md)
-\`\`\`
-"
-
-  # Start background monitor
-  (
-    sleep 2
-    while true; do
-      pid=$(pgrep -f "codex" 2>/dev/null | head -1)
-      if [ -n "$pid" ]; then
-        stats=$(ps -p "$pid" -o %cpu,%mem,rss -w 2>/dev/null | tail -1)
-        net=$(lsof -i -p "$pid" 2>/dev/null | wc -l | tr -d ' ')
-        echo "[monitor] PID:$pid | CPU/MEM/RSS: $stats | Net: $net"
-      fi
-      sleep 5
-    done
-  ) &
-  MONITOR_PID=$!
-
-  # Run codex
-  result=$(codex exec --full-auto "$PROMPT" 2>&1 | tee /dev/tty) || true
-
-  # Kill monitor
-  kill $MONITOR_PID 2>/dev/null || true
-
-  echo ""
-  echo "--- End of iteration $i ---"
-
-  # Check for completion signal
-  if [[ "$result" == *"<promise>COMPLETE</promise>"* ]]; then
-    echo ""
-    echo "═══════════════════════════════════════"
-    echo "  ✓ ALL STORIES COMPLETE"
-    echo "═══════════════════════════════════════"
-    exit 0
-  fi
-
+  echo "Iteration $i complete. Continuing..."
   sleep 2
 done
 
 echo ""
-echo "═══════════════════════════════════════"
-echo "  ✗ Max iterations ($MAX_ITERATIONS) reached"
-echo "═══════════════════════════════════════"
+echo "═══════════════════════════════════════════════════════"
+echo "  ✗ Ralph reached max iterations ($MAX_ITERATIONS)"
+echo "  Check $PROGRESS_FILE for status."
+echo "═══════════════════════════════════════════════════════"
 exit 1

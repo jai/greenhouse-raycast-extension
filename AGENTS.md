@@ -31,6 +31,17 @@ mise exec node@24.1 -- npm run build
 | Claude | `claude -p "prompt"` |
 | Codex | `codex exec --full-auto "prompt"` |
 
+## Dependencies & Versions
+
+**Always use the latest stable versions of all libraries.**
+
+Before installing or updating any package:
+1. Use Perplexity to search for current latest version
+2. Use Perplexity to crawl official docs for API changes/breaking changes
+3. Verify with: `npm view <package> version`
+
+When unsure about API usage, crawl the official documentation first.
+
 ## Raycast Extension Development
 
 - Use `npm install` to install dependencies

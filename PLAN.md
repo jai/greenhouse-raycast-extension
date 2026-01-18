@@ -57,6 +57,23 @@ Notes:
 - Fallback to `applied_at` if no last activity.
 - Later upgrade: use Activity Feed for exact stage-entry timestamps.
 
+## Dependencies & Versions
+
+**Always use the latest stable versions of all libraries and dependencies.**
+
+Before installing or updating any package:
+1. Use Perplexity to search for the current latest version
+2. Use Perplexity to crawl official documentation for breaking changes
+3. Check npm for actual latest: `npm view <package> version`
+
+Key dependencies to verify:
+- `@raycast/api` - latest Raycast API
+- `typescript` - latest stable
+- `vitest` or `jest` - latest for testing
+- Any other packages added
+
+When in doubt, crawl the official docs to confirm API compatibility.
+
 ## Client Integration
 - Copied the existing Harvest client into this repo at:
   - `greenhouse-client/src/harvest-client.js`

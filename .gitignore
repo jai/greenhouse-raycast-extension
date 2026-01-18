@@ -7,7 +7,7 @@ dist/
 # Ralph loop files (don't commit these)
 ralph.log
 .last-branch
-archives/
+archive/
 
 # OS files
 .DS_Store
