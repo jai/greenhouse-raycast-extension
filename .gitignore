@@ -1,6 +1,9 @@
 # Internal automation
-.last-branch
-archive/
+internal/.last-branch
+internal/archive/
+internal/progress.txt
+internal/ralph.log
+internal/loop.log
 
 # --- GitHub.gitignore: Node ---
 # Logs
